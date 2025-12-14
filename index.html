@@ -120,8 +120,8 @@ function setPoint(type, lat, lng, name) {
     // 2. 🚩 깃발 색상 설정
     // 요청하신 대로 출발은 파란색, 도착은 빨간색으로 지정합니다.
     var imgUrl = (type === 'start') 
-        ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_ptr_blue.png" // 출발: 파란색
-        : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_ptr_red.png";  // 도착: 빨간색
+        ? "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/flag/flag_t2.png" // 출발: 파란색
+        : "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/flag/flag_t1.png";  // 도착: 빨간색
 
     var markerImage = new kakao.maps.MarkerImage(imgUrl, new kakao.maps.Size(50, 45));
 
@@ -194,6 +194,7 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
 
 
