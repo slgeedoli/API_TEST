@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>카카오맵 길찾기 최종</title>
+    <title>카카오맵 길찾기 - 최종 수정본</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; line-height: 1.6; }
         .container { max-width: 800px; margin: 0 auto; }
@@ -15,7 +15,7 @@
         .btn-location { background-color: #4CAF50; color: white; }
         .btn-path { width: 100%; background-color: #FEE500; color: #3c1e1e; font-size: 1.1em; margin-top: 10px; }
         #map { width: 100%; height: 450px; margin-top: 20px; border-radius: 10px; border: 1px solid #ccc; }
-        .result-text { font-size: 13px; margin-left: 68px; margin-bottom: 10px; color: #666; height: 20px; }
+        .result-text { font-size: 13px; margin-left: 68px; margin-bottom: 10px; color: #666; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -26,21 +26,21 @@
         <div class="input-group">
             <label>출발지</label>
             <input type="text" id="startKeyword" placeholder="장소 검색 또는 내 위치 클릭" 
-                   onkeypress="if(event.keyCode==13) {searchLocation('start'); return false;}">
-            <button class="btn-search" onclick="searchLocation('start')">검색</button>
-            <button class="btn-location" onclick="setToCurrentLocation()">📍 내 위치</button>
+                   onkeydown="if(event.keyCode==13) searchLocation('start')">
+            <button type="button" class="btn-search" onclick="searchLocation('start')">검색</button>
+            <button type="button" class="btn-location" onclick="setToCurrentLocation()">📍 내 위치</button>
         </div>
         <div id="startResult" class="result-text"></div>
 
         <div class="input-group">
             <label>도착지</label>
             <input type="text" id="endKeyword" placeholder="도착지 검색" 
-                   onkeypress="if(event.keyCode==13) {searchLocation('end'); return false;}">
-            <button class="btn-search" onclick="searchLocation('end')">검색</button>
+                   onkeydown="if(event.keyCode==13) searchLocation('end')">
+            <button type="button" class="btn-search" onclick="searchLocation('end')">검색</button>
         </div>
         <div id="endResult" class="result-text"></div>
 
-        <button class="btn-path" onclick="openPathFinding()">🚀 카카오맵 길찾기 시작</button>
+        <button type="button" class="btn-path" onclick="openPathFinding()">🚀 카카오맵 길찾기 시작</button>
     </div>
     <div id="map"></div>
 </div>
@@ -48,34 +48,48 @@
 <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=66ae3efe79b3a691f03832967f0df6a2&libraries=services,clusterer,drawing&autoload=false"></script>
 
 <script>
+// 1. 전역 변수 선언 (초기값 설정)
 var map, ps, geocoder;
-var startPoint = { lat: null, lng: null, name: null, marker: null };
-var endPoint = { lat: null, lng: null, name: null, marker: null };
-var startOverlay = null, endOverlay = null, polyline = null;
+var startPoint = { lat: null, lng: null, name: null, marker: null, overlay: null };
+var endPoint = { lat: null, lng: null, name: null, marker: null, overlay: null };
+var polyline = null;
 
+// 2. 지도 초기화
 kakao.maps.load(function() {
     var mapContainer = document.getElementById('map');
-    map = new kakao.maps.Map(mapContainer, { center: new kakao.maps.LatLng(37.566826, 126.9786567), level: 3 });
+    var mapOption = {
+        center: new kakao.maps.LatLng(37.566826, 126.9786567),
+        level: 3
+    };
+    map = new kakao.maps.Map(mapContainer, mapOption);
     ps = new kakao.maps.services.Places();
     geocoder = new kakao.maps.services.Geocoder();
 });
 
+// 3. 검색 함수
 function searchLocation(type) {
     var keyword = document.getElementById(type + 'Keyword').value;
-    if (!keyword.trim()) { alert('검색어를 입력해주세요.'); return; }
+    if (!keyword.trim()) {
+        alert('검색어를 입력해주세요.');
+        return;
+    }
 
     ps.keywordSearch(keyword, function(data, status) {
         if (status === kakao.maps.services.Status.OK) {
             var place = data[0];
             setPoint(type, place.y, place.x, place.place_name);
-        } else { alert('검색 결과가 없습니다.'); }
+        } else {
+            alert('검색 결과가 없습니다.');
+        }
     });
 }
 
+// 4. 내 위치 함수
 function setToCurrentLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
-            var lat = position.coords.latitude, lng = position.coords.longitude;
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
             geocoder.coord2Address(lng, lat, function(result, status) {
                 if (status === kakao.maps.services.Status.OK) {
                     var addr = result[0].address.address_name;
@@ -83,41 +97,40 @@ function setToCurrentLocation() {
                     setPoint('start', lat, lng, "내 현재 위치 (" + addr + ")");
                 }
             });
-        }, function(err) { alert("위치 정보 접근을 허용해주세요."); });
+        }, function(err) {
+            alert("위치 권한을 허용해주세요.");
+        });
     }
 }
 
+// 5. 마커 및 오버레이 표시 (핵심 수정 부분)
 function setPoint(type, lat, lng, name) {
     var pos = new kakao.maps.LatLng(lat, lng);
-    
-    if (type === 'start') {
-        if (startPoint.marker) startPoint.marker.setMap(null);
-        if (startOverlay) startOverlay.setMap(null);
-    } else {
-        if (endPoint.marker) endPoint.marker.setMap(null);
-        if (endOverlay) endOverlay.setMap(null);
-    }
+    var target = (type === 'start') ? startPoint : endPoint;
+
+    // 기존 요소 제거
+    if (target.marker) target.marker.setMap(null);
+    if (target.overlay) target.overlay.setMap(null);
 
     var bgColor = (type === 'start') ? '#007aff' : '#ff3b30';
     var labelText = (type === 'start') ? '출발' : '도착';
 
-    var content = '<div style="position: relative; bottom: 45px; transform: translateX(-50%);">' +
-        '<div style="padding: 5px 12px; background: ' + bgColor + '; border-radius: 4px; color: #fff; font-weight: bold; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">' + labelText + '</div>' +
-        '<div style="position: absolute; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid ' + bgColor + '; bottom: -7px; left: 50%; transform: translateX(-50%);"></div></div>';
+    // 커스텀 오버레이 (말풍선)
+    var content = '<div style="position: relative; bottom: 45px; transform: translateX(-50%); z-index:10;">' +
+                  '  <div style="padding: 5px 12px; background: ' + bgColor + '; border-radius: 4px; color: #fff; font-weight: bold; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 1px solid #fff; white-space: nowrap;">' + labelText + '</div>' +
+                  '  <div style="position: absolute; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid ' + bgColor + '; bottom: -7px; left: 50%; transform: translateX(-50%);"></div>' +
+                  '</div>';
 
-    var customOverlay = new kakao.maps.CustomOverlay({ position: pos, content: content, map: map });
-    var newMarker = new kakao.maps.Marker({ position: pos, map: map });
+    target.overlay = new kakao.maps.CustomOverlay({ position: pos, content: content, map: map });
+    target.marker = new kakao.maps.Marker({ position: pos, map: map });
+    
+    target.lat = lat; target.lng = lng; target.name = name;
 
-    if (type === 'start') {
-        startPoint = { lat: lat, lng: lng, name: name, marker: newMarker };
-        startOverlay = customOverlay;
-        document.getElementById('startResult').innerHTML = "<b style='color:#007aff;'>🟦 출발지:</b> " + name;
-    } else {
-        endPoint = { lat: lat, lng: lng, name: name, marker: newMarker };
-        endOverlay = customOverlay;
-        document.getElementById('endResult').innerHTML = "<b style='color:#ff3b30;'>🟥 도착지:</b> " + name;
-    }
+    // 결과 텍스트 업데이트
+    var resultId = (type === 'start') ? 'startResult' : 'endResult';
+    document.getElementById(resultId).innerHTML = "<b style='color:" + bgColor + ";'>● " + labelText + ":</b> " + name;
 
+    // 두 지점 연결 및 범위 조정
     if (startPoint.lat && endPoint.lat) {
         if (polyline) polyline.setMap(null);
         polyline = new kakao.maps.Polyline({
@@ -125,15 +138,22 @@ function setPoint(type, lat, lng, name) {
             strokeWeight: 5, strokeColor: '#db4040', strokeOpacity: 0.7
         });
         polyline.setMap(map);
+
         var bounds = new kakao.maps.LatLngBounds();
         bounds.extend(new kakao.maps.LatLng(startPoint.lat, startPoint.lng));
         bounds.extend(new kakao.maps.LatLng(endPoint.lat, endPoint.lng));
         map.setBounds(bounds, 50);
-    } else { map.panTo(pos); }
+    } else {
+        map.panTo(pos);
+    }
 }
 
+// 6. 길찾기 실행
 function openPathFinding() {
-    if (!startPoint.lat || !endPoint.lat) { alert("출발지와 도착지를 모두 설정해주세요."); return; }
+    if (!startPoint.lat || !endPoint.lat) {
+        alert("출발지와 도착지를 모두 설정해주세요.");
+        return;
+    }
     var url = "https://map.kakao.com/link/to/" + endPoint.name + "," + endPoint.lat + "," + endPoint.lng + 
               "/from/" + startPoint.name + "," + startPoint.lat + "," + startPoint.lng;
     window.open(url, '_blank');
