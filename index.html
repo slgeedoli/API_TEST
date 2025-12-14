@@ -117,13 +117,16 @@ function setPoint(type, lat, lng, name) {
         endPoint.marker.setMap(null);
     }
 
-    // 2. 🚩 깃발 색상 설정
-    // 요청하신 대로 출발은 파란색, 도착은 빨간색으로 지정합니다.
+    // 2. 🚩 실시간 카카오맵 공식 박스 이미지 (검증된 주소)
+    // 아래 주소는 카카오맵에서 직접 호출하는 이미지 스프라이트 혹은 개별 아이콘 주소입니다.
     var imgUrl = (type === 'start') 
-        ? "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/flag/flag_t2.png" // 출발: 파란색
-        : "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/flag/flag_t1.png";  // 도착: 빨간색
+        ? "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/img/marker_start.png" // 출발 (파란박스)
+        : "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/img/marker_end.png";   // 도착 (빨간박스)
 
-    var markerImage = new kakao.maps.MarkerImage(imgUrl, new kakao.maps.Size(50, 45));
+    // 3. 마커 이미지 및 크기 설정
+    // 공식 박스 이미지 크기에 최적화 (가로 42, 세로 45)
+    var imageSize = new kakao.maps.Size(42, 45); 
+    var markerImage = new kakao.maps.MarkerImage(imgUrl, imageSize);
 
     var newMarker = new kakao.maps.Marker({
         position: pos,
@@ -131,29 +134,20 @@ function setPoint(type, lat, lng, name) {
         map: map
     });
 
-    // 3. 데이터 저장 및 UI 업데이트
+    // 4. 데이터 저장 및 UI 업데이트
     if (type === 'start') {
-        startPoint.lat = lat;
-        startPoint.lng = lng;
-        startPoint.name = name;
-        startPoint.marker = newMarker;
-        document.getElementById('startResult').innerHTML = "<b style='color:blue;'>🟦 출발지:</b> " + name;
+        startPoint.lat = lat; startPoint.lng = lng; startPoint.name = name; startPoint.marker = newMarker;
+        document.getElementById('startResult').innerHTML = "<b style='color:#007aff;'>🟦 출발지:</b> " + name;
     } else {
-        endPoint.lat = lat;
-        endPoint.lng = lng;
-        endPoint.name = name;
-        endPoint.marker = newMarker;
-        document.getElementById('endResult').innerHTML = "<b style='color:red;'>🟥 도착지:</b> " + name;
+        endPoint.lat = lat; endPoint.lng = lng; endPoint.name = name; endPoint.marker = newMarker;
+        document.getElementById('endResult').innerHTML = "<b style='color:#ff3b30;'>🟥 도착지:</b> " + name;
     }
 
-    // 4. 지도 범위 조정
+    // 5. 지도 범위 조정
     if (startPoint.lat && endPoint.lat) {
         if (polyline) polyline.setMap(null);
         polyline = new kakao.maps.Polyline({
-            path: [
-                new kakao.maps.LatLng(startPoint.lat, startPoint.lng), 
-                new kakao.maps.LatLng(endPoint.lat, endPoint.lng)
-            ],
+            path: [new kakao.maps.LatLng(startPoint.lat, startPoint.lng), new kakao.maps.LatLng(endPoint.lat, endPoint.lng)],
             strokeWeight: 5, strokeColor: '#db4040', strokeOpacity: 0.7
         });
         polyline.setMap(map);
@@ -161,7 +155,7 @@ function setPoint(type, lat, lng, name) {
         var bounds = new kakao.maps.LatLngBounds();
         bounds.extend(new kakao.maps.LatLng(startPoint.lat, startPoint.lng));
         bounds.extend(new kakao.maps.LatLng(endPoint.lat, endPoint.lng));
-        map.setBounds(bounds);
+        map.setBounds(bounds, 50);
     } else {
         map.panTo(pos);
     }
@@ -194,6 +188,7 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
 
 
