@@ -24,20 +24,19 @@
     <h2>📍 카카오맵 길찾기</h2>
     <div class="search-box">
         <div class="input-group">
-            <label>출발지</label>
-            <input type="text" id="startKeyword" placeholder="장소 검색 또는 내 위치 클릭">
-            <button class="btn-search" onclick="searchLocation('start')">검색</button>
-            <button class="btn-location" onclick="setToCurrentLocation()">📍 내 위치</button>
-        </div>
-        <div id="startResult" class="result-text">미설정</div>
+    <label>출발지</label>
+    <input type="text" id="startKeyword" placeholder="장소 검색 또는 내 위치 클릭" 
+           onkeyup="if(window.event.keyCode==13){searchLocation('start')}">
+    <button class="btn-search" onclick="searchLocation('start')">검색</button>
+    <button class="btn-location" onclick="setToCurrentLocation()">📍 내 위치</button>
+</div>
 
-        <div class="input-group">
-            <label>도착지</label>
-            <input type="text" id="endKeyword" placeholder="도착지 검색">
-            <button class="btn-search" onclick="searchLocation('end')">검색</button>
-        </div>
-        <div id="endResult" class="result-text">미설정</div>
-
+<div class="input-group">
+    <label>도착지</label>
+    <input type="text" id="endKeyword" placeholder="도착지 검색" 
+           onkeyup="if(window.event.keyCode==13){searchLocation('end')}">
+    <button class="btn-search" onclick="searchLocation('end')">검색</button>
+</div>
         <button class="btn-path" onclick="openPathFinding()">🚀 카카오맵 길찾기 시작</button>
     </div>
     <div id="map"></div>
@@ -205,6 +204,7 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
 
 
