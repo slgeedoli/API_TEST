@@ -108,13 +108,14 @@ function setToCurrentLocation() {
 // [완벽하게 교정된 마커 표시 함수]
 // [출발: 파랑, 도착: 빨강으로 설정된 마커 표시 함수]
 // 전역 변수에 오버레이 저장 변수 추가 (기존 변수들과 함께 선언)
+// 전역 변수 영역에 오버레이 관리 변수 추가
 var startOverlay = null;
 var endOverlay = null;
 
 function setPoint(type, lat, lng, name) {
     var pos = new kakao.maps.LatLng(lat, lng);
     
-    // 1. 기존 마커 및 오버레이 제거
+    // 1. 기존 마커 및 오버레이 제거 (중복 방지)
     if (type === 'start') {
         if (startPoint.marker) startPoint.marker.setMap(null);
         if (startOverlay) startOverlay.setMap(null);
@@ -123,31 +124,33 @@ function setPoint(type, lat, lng, name) {
         if (endOverlay) endOverlay.setMap(null);
     }
 
-    // 2. 배경색 설정 (출발: 파랑, 도착: 빨강)
-    var bgColor = (type === 'start') ? '#007aff' : '#ff3b30';
+    // 2. 🎨 디자인 설정 (이미지 대신 코드로 생성)
+    var bgColor = (type === 'start') ? '#007aff' : '#ff3b30'; // 출발: 파랑, 도착: 빨강
     var labelText = (type === 'start') ? '출발' : '도착';
 
-    // 3. 커스텀 오버레이 생성 (HTML로 직접 디자인)
-    var content = '<div style="padding:5px 10px; background:' + bgColor + '; border-radius:5px; color:#fff; font-weight:bold; font-size:12px; border:1px solid #fff; box-shadow:0px 2px 6px rgba(0,0,0,0.3); position:relative; bottom:40px;">' +
-                  labelText +
-                  '<div style="position:absolute; width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:5px solid ' + bgColor + '; bottom:-5px; left:50%; transform:translateX(-50%);"></div>' +
-                  '</div>';
+    // HTML 코드로 직접 말풍선 제작
+    var content = 
+        '<div style="position: relative; bottom: 45px; transform: translateX(-50%);">' +
+        '  <div style="padding: 5px 12px; background: ' + bgColor + '; border-radius: 4px; color: #fff; font-weight: bold; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">' +
+             labelText +
+        '  </div>' +
+        '  <div style="position: absolute; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid ' + bgColor + '; bottom: -7px; left: 50%; transform: translateX(-50%);"></div>' +
+        '</div>';
 
+    // 3. 커스텀 오버레이 생성
     var customOverlay = new kakao.maps.CustomOverlay({
         position: pos,
         content: content,
-        yAnchor: 1 
+        map: map
     });
 
-    // 4. 마커는 기본 마커(점) 혹은 투명하게 설정 가능 (여기서는 기본 핀 사용)
+    // 4. 위치 표시용 기본 마커 (작은 점 혹은 핀)
     var newMarker = new kakao.maps.Marker({
         position: pos,
         map: map
     });
 
-    customOverlay.setMap(map);
-
-    // 5. 데이터 저장 및 UI 업데이트
+    // 5. 데이터 업데이트
     if (type === 'start') {
         startPoint = { lat: lat, lng: lng, name: name, marker: newMarker };
         startOverlay = customOverlay;
@@ -158,7 +161,7 @@ function setPoint(type, lat, lng, name) {
         document.getElementById('endResult').innerHTML = "<b style='color:#ff3b30;'>🟥 도착지:</b> " + name;
     }
 
-    // 6. 지도 범위 조정 (이전과 동일)
+    // 6. 지도 범위 조정 로직 (기존과 동일)
     if (startPoint.lat && endPoint.lat) {
         if (polyline) polyline.setMap(null);
         polyline = new kakao.maps.Polyline({
@@ -202,6 +205,7 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
 
 
