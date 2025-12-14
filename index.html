@@ -88,17 +88,27 @@ function searchLocation(type) {
 function setToCurrentLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
-            var lat = position.coords.latitude;
-            var lng = position.coords.longitude;
+            var lat = position.coords.latitude; // 브라우저가 잡은 위도
+            var lng = position.coords.longitude; // 브라우저가 잡은 경도
+            
+            // 주소로 변환하기 전, 원래 좌표 그대로 마커를 먼저 찍습니다.
+            setPoint('start', lat, lng, "내 현재 위치 (정밀 좌표)");
+
+            // (선택사항) 그 후에 참고용으로 주소를 가져와 텍스트만 업데이트합니다.
             geocoder.coord2Address(lng, lat, function(result, status) {
                 if (status === kakao.maps.services.Status.OK) {
                     var addr = result[0].address.address_name;
                     document.getElementById('startKeyword').value = "내 현재 위치";
-                    setPoint('start', lat, lng, "내 현재 위치 (" + addr + ")");
+                    document.getElementById('startResult').innerHTML = 
+                        "<b style='color:#007aff;'>● 출발:</b> 내 현재 위치 (" + addr + ")";
                 }
             });
         }, function(err) {
-            alert("위치 권한을 허용해주세요.");
+            alert("위치 정보 접근을 허용해주세요. (설정 -> 개인정보 보호)");
+        }, {
+            enableHighAccuracy: true, // ⭐ 정확도를 최대한 높이는 옵션 추가
+            timeout: 5000,
+            maximumAge: 0
         });
     }
 }
@@ -161,3 +171,4 @@ function openPathFinding() {
 </script>
 </body>
 </html>
+
