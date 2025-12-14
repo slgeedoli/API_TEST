@@ -109,23 +109,34 @@ function setPoint(type, lat, lng, name) {
     var pos = new kakao.maps.LatLng(lat, lng);
     var target = (type === 'start') ? startPoint : endPoint;
 
+    // 기존 마커 제거
     if (target.marker) target.marker.setMap(null);
 
-    var img = type === 'start' ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png" : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png";
+    // 🚩 이미지 경로 수정 완료: 
+    // type이 'start'(출발)일 때 red_b(출발 깃발), 아닐 때 blue_b(도착 깃발)가 나오도록 변경했습니다.
+    var img = (type === 'start') 
+        ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png"  // 출발: 빨간색
+        : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png"; // 도착: 파란색
+
     target.marker = new kakao.maps.Marker({
         position: pos,
         image: new kakao.maps.MarkerImage(img, new kakao.maps.Size(50, 45)),
         map: map
     });
 
-    target.lat = lat; target.lng = lng; target.name = name;
+    target.lat = lat; 
+    target.lng = lng; 
+    target.name = name;
     document.getElementById(type + 'Result').innerText = "✅ " + name;
 
-    // 지도 맞춤
+    // 두 지점이 다 있으면 선 긋고 범위 조정
     if (startPoint.lat && endPoint.lat) {
         if (polyline) polyline.setMap(null);
         polyline = new kakao.maps.Polyline({
-            path: [new kakao.maps.LatLng(startPoint.lat, startPoint.lng), new kakao.maps.LatLng(endPoint.lat, endPoint.lng)],
+            path: [
+                new kakao.maps.LatLng(startPoint.lat, startPoint.lng), 
+                new kakao.maps.LatLng(endPoint.lat, endPoint.lng)
+            ],
             strokeWeight: 5, strokeColor: '#db4040', strokeOpacity: 0.7
         });
         polyline.setMap(map);
@@ -166,4 +177,5 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
