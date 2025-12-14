@@ -107,43 +107,58 @@ function setToCurrentLocation() {
 // [공통] 마커 및 선 그리기
 // [완벽하게 교정된 마커 표시 함수]
 // [출발: 파랑, 도착: 빨강으로 설정된 마커 표시 함수]
+// 전역 변수에 오버레이 저장 변수 추가 (기존 변수들과 함께 선언)
+var startOverlay = null;
+var endOverlay = null;
+
 function setPoint(type, lat, lng, name) {
     var pos = new kakao.maps.LatLng(lat, lng);
     
-    // 1. 기존 마커 제거
-    if (type === 'start' && startPoint.marker) {
-        startPoint.marker.setMap(null);
-    } else if (type === 'end' && endPoint.marker) {
-        endPoint.marker.setMap(null);
+    // 1. 기존 마커 및 오버레이 제거
+    if (type === 'start') {
+        if (startPoint.marker) startPoint.marker.setMap(null);
+        if (startOverlay) startOverlay.setMap(null);
+    } else {
+        if (endPoint.marker) endPoint.marker.setMap(null);
+        if (endOverlay) endOverlay.setMap(null);
     }
 
-    // 2. 🚩 실시간 카카오맵 공식 박스 이미지 (검증된 주소)
-    // 아래 주소는 카카오맵에서 직접 호출하는 이미지 스프라이트 혹은 개별 아이콘 주소입니다.
-    var imgUrl = (type === 'start') 
-        ? "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/img/marker_start.png" // 출발 (파란박스)
-        : "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/img/marker_end.png";   // 도착 (빨간박스)
+    // 2. 배경색 설정 (출발: 파랑, 도착: 빨강)
+    var bgColor = (type === 'start') ? '#007aff' : '#ff3b30';
+    var labelText = (type === 'start') ? '출발' : '도착';
 
-    // 3. 마커 이미지 및 크기 설정
-    // 공식 박스 이미지 크기에 최적화 (가로 42, 세로 45)
-    var imageSize = new kakao.maps.Size(42, 45); 
-    var markerImage = new kakao.maps.MarkerImage(imgUrl, imageSize);
+    // 3. 커스텀 오버레이 생성 (HTML로 직접 디자인)
+    var content = '<div style="padding:5px 10px; background:' + bgColor + '; border-radius:5px; color:#fff; font-weight:bold; font-size:12px; border:1px solid #fff; box-shadow:0px 2px 6px rgba(0,0,0,0.3); position:relative; bottom:40px;">' +
+                  labelText +
+                  '<div style="position:absolute; width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:5px solid ' + bgColor + '; bottom:-5px; left:50%; transform:translateX(-50%);"></div>' +
+                  '</div>';
 
+    var customOverlay = new kakao.maps.CustomOverlay({
+        position: pos,
+        content: content,
+        yAnchor: 1 
+    });
+
+    // 4. 마커는 기본 마커(점) 혹은 투명하게 설정 가능 (여기서는 기본 핀 사용)
     var newMarker = new kakao.maps.Marker({
         position: pos,
-        image: markerImage,
         map: map
     });
 
-    // 4. 데이터 저장 및 UI 업데이트
+    customOverlay.setMap(map);
+
+    // 5. 데이터 저장 및 UI 업데이트
     if (type === 'start') {
-        startPoint.lat = lat; startPoint.lng = lng; startPoint.name = name; startPoint.marker = newMarker;
+        startPoint = { lat: lat, lng: lng, name: name, marker: newMarker };
+        startOverlay = customOverlay;
         document.getElementById('startResult').innerHTML = "<b style='color:#007aff;'>🟦 출발지:</b> " + name;
     } else {
-        endPoint.lat = lat; endPoint.lng = lng; endPoint.name = name; endPoint.marker = newMarker;
+        endPoint = { lat: lat, lng: lng, name: name, marker: newMarker };
+        endOverlay = customOverlay;
         document.getElementById('endResult').innerHTML = "<b style='color:#ff3b30;'>🟥 도착지:</b> " + name;
     }
 
-    // 5. 지도 범위 조정
+    // 6. 지도 범위 조정 (이전과 동일)
     if (startPoint.lat && endPoint.lat) {
         if (polyline) polyline.setMap(null);
         polyline = new kakao.maps.Polyline({
@@ -151,7 +166,6 @@ function setPoint(type, lat, lng, name) {
             strokeWeight: 5, strokeColor: '#db4040', strokeOpacity: 0.7
         });
         polyline.setMap(map);
-
         var bounds = new kakao.maps.LatLngBounds();
         bounds.extend(new kakao.maps.LatLng(startPoint.lat, startPoint.lng));
         bounds.extend(new kakao.maps.LatLng(endPoint.lat, endPoint.lng));
@@ -188,6 +202,7 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
 
 
