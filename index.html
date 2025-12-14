@@ -106,21 +106,22 @@ function setToCurrentLocation() {
 
 // [공통] 마커 및 선 그리기
 // [완벽하게 교정된 마커 표시 함수]
+// [출발: 파랑, 도착: 빨강으로 설정된 마커 표시 함수]
 function setPoint(type, lat, lng, name) {
     var pos = new kakao.maps.LatLng(lat, lng);
     
-    // 1. 기존 마커 제거 로직
+    // 1. 기존 마커 제거
     if (type === 'start' && startPoint.marker) {
         startPoint.marker.setMap(null);
     } else if (type === 'end' && endPoint.marker) {
         endPoint.marker.setMap(null);
     }
 
-    // 2. 🚩 깃발 이미지 매칭 (글자와 색상 모두 교정)
-    // 카카오 기본 이미지: red_b 가 "출발", blue_b 가 "도착"입니다.
+    // 2. 🚩 깃발 색상 설정
+    // 요청하신 대로 출발은 파란색, 도착은 빨간색으로 지정합니다.
     var imgUrl = (type === 'start') 
-        ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png"  // 빨간색 '출발' 깃발
-        : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png"; // 파란색 '도착' 깃발
+        ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png" // 출발: 파란색
+        : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png";  // 도착: 빨간색
 
     var markerImage = new kakao.maps.MarkerImage(imgUrl, new kakao.maps.Size(50, 45));
 
@@ -130,22 +131,22 @@ function setPoint(type, lat, lng, name) {
         map: map
     });
 
-    // 3. 데이터 업데이트
+    // 3. 데이터 저장 및 UI 업데이트
     if (type === 'start') {
         startPoint.lat = lat;
         startPoint.lng = lng;
         startPoint.name = name;
         startPoint.marker = newMarker;
-        document.getElementById('startResult').innerText = "✅ 출발지 설정됨: " + name;
+        document.getElementById('startResult').innerHTML = "<b style='color:blue;'>🟦 출발지:</b> " + name;
     } else {
         endPoint.lat = lat;
         endPoint.lng = lng;
         endPoint.name = name;
         endPoint.marker = newMarker;
-        document.getElementById('endResult').innerText = "✅ 도착지 설정됨: " + name;
+        document.getElementById('endResult').innerHTML = "<b style='color:red;'>🟥 도착지:</b> " + name;
     }
 
-    // 4. 지도 자동 조정 (두 지점 모두 있을 때)
+    // 4. 지도 범위 조정
     if (startPoint.lat && endPoint.lat) {
         if (polyline) polyline.setMap(null);
         polyline = new kakao.maps.Polyline({
@@ -193,6 +194,7 @@ if (!startPoint.lat || !endPoint.lat) {
 
 </body>
 </html>
+
 
 
 
