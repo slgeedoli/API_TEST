@@ -141,14 +141,29 @@ function setPoint(type, lat, lng, name) {
 
 // [기능] 카카오맵 연동
 function openPathFinding() {
-    if (!startPoint.lat || !endPoint.lat) {
+if (!startPoint.lat || !endPoint.lat) {
         alert("출발지와 도착지를 모두 설정해주세요.");
         return;
     }
-    var url = `https://map.kakao.com/link/to/${endPoint.name},${endPoint.lat},${endPoint.lng}/from/${startPoint.name},${startPoint.lat},${startPoint.lng}`;
+
+    // 1. 도착지 정보 (To)
+    var toName = endPoint.name;
+    var toLat = endPoint.lat;
+    var toLng = endPoint.lng;
+
+    // 2. 출발지 정보 (From)
+    var fromName = startPoint.name;
+    var fromLat = startPoint.lat;
+    var fromLng = startPoint.lng;
+
+    // 3. 최종 URL 조합 (순서: /to/도착지/from/출발지)
+    var url = "https://map.kakao.com/link/to/" + toName + "," + toLat + "," + toLng + 
+              "/from/" + fromName + "," + fromLat + "," + fromLng;
+
     window.open(url, '_blank');
 }
 </script>
 
 </body>
 </html>
+
