@@ -7,19 +7,14 @@
 <body>
   <div id="map" style="width:500px;height:400px;"></div>
 
-  <!-- Kakao SDK를 body 맨 아래에서 로드 -->
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=66ae3efe79b3a691f03832967f0df6a2"></script>
   <script>
-    window.addEventListener('load', function() {
-      kakao.maps.load(function() {
-        var container = document.getElementById('map');
-        var options = {
-          center: new kakao.maps.LatLng(37.5665, 126.9780),
-          level: 3
-        };
-        var map = new kakao.maps.Map(container, options);
-      });
-    });
+    var container = document.getElementById('map');
+    var options = {
+      center: new kakao.maps.LatLng(37.5665, 126.9780),
+      level: 3
+    };
+    var map = new kakao.maps.Map(container, options);
   </script>
 </body>
 </html>
